@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MP賭博システム</title>
+  <style>
+    body { background: #1c1c1c; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 1rem; }
+    h2 { font-size: 1.4rem; border-bottom: 2px solid #333; padding-bottom: 0.4rem; margin-top: 2rem; }
+    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
+    th, td { border: 1px solid #444; padding: 0.5rem; text-align: center; background-color: #2b2b2b; }
+    input, select, button { padding: 0.4rem; margin: 0.2rem; background: #2e2e2e; color: white; border: 1px solid #555; }
+    .tab { display: none; }
+    .active { display: block; }
+    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
+    .tabs button { background: #333; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius: 5px; }
+    .tabs button.active { background: #4caf50; }
+    .log-entry { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 0.3rem; margin: 0.2rem 0; border-radius: 5px; }
+    .log-entry button { background: #555; font-size: 0.8rem; }
+    #results div { margin-top: 0.5rem; padding: 0.3rem; border-radius: 5px; }
+  </style>
+</head>
+<body>
+  <div class="tabs">
+    <button onclick="switchTab('leaderboard')" class="active">🏆 ランキング</button>
+    <button onclick="switchTab('calculator')">🎲 得点計算</button>
+    <button onclick="switchTab('logs')">📖 履歴</button>
+  </div>
+
+  <div id="leaderboard" class="tab active">
+    <h2>リーダーボード</h2>
+    <table>
+      <thead>
+        <tr><th>Rank</th><th>Name</th><th>Division</th><th>MP</th><th>Peak MP</th><th>Played</th><th>Win Rate</th><th>W-L</th></tr>
+      </thead>
+      <tbody id="leaderboard-body"></tbody>
+    </table>
+  </div>
+
+  <div id="calculator" class="tab">
+    <h2>得点計算</h2>
+    <label>モード: 
+      <select id="mode" onchange="initScoreInputs()">
+        <option value="time">TIME / TURN</option>
+        <option value="score">SCORE</option>
+      </select>
+    </label>
+    <label>日付: <input id="event-date" type="date"></label>
+    <label>イベント名: <input id="event-name" type="text"></label>
+    <table>
+      <thead>
+        <tr><th>Name</th><th>BET</th><th>TIME / SCORE</th></tr>
+      </thead>
+      <tbody id="score-inputs"></tbody>
+    </table>
+    <button onclick="calculateResults()">計算</button>
+    <div id="results"></div>
+  </div>
+
+  <div id="logs" class="tab">
+    <h2>プレイヤー履歴</h2>
+    <select id="logPlayer" onchange="renderLogs()">
+      <option>Yuito</option><option>ZAWA</option><option>JO</option><option>SIGE</option><option>BANA</option>
+    </select>
+    <div id="playerLogs"></div>
+  </div>
+
+  <script>
+    const players = {
+      Yuito: { MP: 1000, peak: 1000, played: 0, wins: 0, logs: [] },
+      ZAWA:  { MP: 1000, peak: 1000, played: 0, wins: 0, logs: [] },
+      JO:    { MP: 1000, peak: 1000, played: 0, wins: 0, logs: [] },
+      SIGE:  { MP: 1000, peak: 1000, played: 0, wins: 0, logs: [] },
+      BANA:  { MP: 1000, peak: 1000, played: 0, wins: 0, logs: [] },
+    };
+
+    const divisions = [
+      { name: 'Crown', min: 50000, rates: [1.5, 1, -0.5, -2.25] },
+      { name: 'Grandmaster', min: 40000, rates: [1.6, 1.25, -0.25, -2.133] },
+      { name: 'Master', min: 30000, rates: [1.7, 1.25, -0.25, -1.917] },
+      { name: 'Diamond', min: 25000, rates: [1.8, 1.25, -0.25, -1.6] },
+      { name: 'Platinum', min: 20000, rates: [1.9, 1.5, 0, -1.183] },
+      { name: 'Gold', min: 15000, rates: [2, 1.5, 0.25, -0.666] },
+      { name: 'Silver', min: 10000, rates: [2.2, 2, 0.25, -0.356] },
+      { name: 'Bronze', min: 5000, rates: [2.5, 2, 0.5, -0.25] },
+      { name: 'Iron', min: 0, rates: [3, 2, 0.5, 0] },
+    ];
+
+    function getDivision(mp) {
+      return divisions.find(d => mp >= d.min).name;
+    }
+
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+      document.querySelectorAll('.tabs button').forEach(btn => btn.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      event.target.classList.add('active');
+      if (tabId === 'logs') renderLogs();
+    }
+
+    function renderLeaderboard() {
+      const body = document.getElementById('leaderboard-body');
+      const sorted = Object.entries(players).sort((a, b) => b[1].MP - a[1].MP);
+      body.innerHTML = '';
+      sorted.forEach(([name, p], i) => {
+        const div = getDivision(p.MP);
+        const rate = p.played ? Math.round(p.wins / p.played * 100) : 0;
+        const wl = `${p.wins}-${p.played - p.wins}`;
+        body.innerHTML += `<tr><td>${i + 1}</td><td>${name}</td><td>${div}</td><td>${p.MP}</td><td>${p.peak}</td><td>${p.played}</td><td>${rate}%</td><td>${wl}</td></tr>`;
+      });
+    }
+
+    function renderLogs() {
+      const name = document.getElementById('logPlayer').value;
+      const logDiv = document.getElementById('playerLogs');
+      const logs = players[name].logs;
+      logDiv.innerHTML = logs.map((log, i) => `
+        <div class="log-entry">
+          <span>${log.time} / ${log.event} / ${log.change} MP</span>
+          <button onclick="editLog('${name}', ${i})">編集</button>
+          <button onclick="deleteLog('${name}', ${i})">削除</button>
+        </div>
+      `).join('');
+    }
+
+    function deleteLog(name, index) {
+      const change = players[name].logs[index].change;
+      players[name].MP -= change;
+      players[name].logs.splice(index, 1);
+      renderLogs();
+      renderLeaderboard();
+    }
+
+    function editLog(name, index) {
+      const newVal = prompt('新しいMP変動を入力してください');
+      const change = parseFloat(newVal);
+      if (!isNaN(change)) {
+        const old = players[name].logs[index].change;
+        players[name].MP += (change - old);
+        players[name].logs[index].change = change;
+        renderLogs();
+        renderLeaderboard();
+      }
+    }
+
+    function initScoreInputs() {
+      const tbody = document.getElementById('score-inputs');
+      tbody.innerHTML = '';
+      Object.keys(players).forEach(name => {
+        tbody.innerHTML += `
+          <tr>
+            <td>${name}</td>
+            <td><input id="bet-${name}" type="number" placeholder=""></td>
+            <td><input id="val-${name}" type="number" placeholder=""></td>
+          </tr>`;
+      });
+    }
+
+    function calculateResults() {
+      const mode = document.getElementById('mode').value;
+      const names = Object.keys(players);
+      const values = [];
+      names.forEach(name => {
+        const bet = parseFloat(document.getElementById(`bet-${name}`).value);
+        const val = parseFloat(document.getElementById(`val-${name}`).value);
+        if (!isNaN(bet) && !isNaN(val)) values.push({ name, bet, value: val });
+      });
+
+      const avg = values.reduce((a, b) => a + b.value, 0) / values.length;
+      let sorted = [...values].sort((a, b) => mode === 'score' ? b.value - a.value : a.value - b.value);
+      let rankMap = {}; let rank = 0;
+      for (let i = 0; i < sorted.length; i++) {
+        if (i === 0 || sorted[i].value !== sorted[i - 1].value) rank = i;
+        rankMap[sorted[i].name] = rank;
+      }
+
+      const resultDiv = document.getElementById('results');
+      resultDiv.innerHTML = '';
+      const results = [];
+      const count = values.length;
+      values.forEach(entry => {
+        const player = players[entry.name];
+        const divObj = divisions.find(d => d.name === getDivision(player.MP));
+        const place = rankMap[entry.name];
+
+        let posRate = 0;
+        if (count === 4) posRate = divObj.rates[place] ?? 0;
+        else if (count === 3) posRate = place === 0 ? divObj.rates[0] : (place === 1 ? 1 : divObj.rates[3]);
+        else if (count === 2) posRate = place === 0 ? divObj.rates[0] : divObj.rates[3];
+
+        let scoreRate = mode === 'score' ? entry.value / avg : avg / entry.value;
+        scoreRate = Math.round(scoreRate * 1000) / 1000;
+        const gain = Math.round((entry.bet * posRate * scoreRate - entry.bet) * 1000) / 1000;
+
+        const btn = `<button onclick="applyToLog('${entry.name}', ${gain})">→履歴に反映</button>`;
+        const color = gain > 0 ? 'red' : gain < 0 ? 'skyblue' : 'white';
+        resultDiv.innerHTML += `<div style="color:${color}">${entry.name}：${gain} MP ${btn}</div>`;
+        results.push({ ...entry, gain });
+      });
+    }
+
+    function applyToLog(name, change) {
+      const date = document.getElementById('event-date').value || new Date().toLocaleDateString('ja-JP');
+      const event = document.getElementById('event-name').value || '[得点計算]';
+      players[name].logs.push({ event, time: date, change });
+      players[name].MP += change;
+      if (players[name].MP > players[name].peak) players[name].peak = players[name].MP;
+      players[name].played++;
+      if (change > 0) players[name].wins++;
+      renderLeaderboard();
+      renderLogs();
+    }
+
+    renderLeaderboard();
+    initScoreInputs();
+  </script>
+</body>
+</html>
