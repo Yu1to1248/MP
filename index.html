@@ -100,6 +100,8 @@
         <option value="TIME">TIME</option>
         <option value="TURN">TURN</option>
       </select>
+      <label class="ml-4 mr-2">Event Name:</label>
+      <input type="text" id="global-event-name" class="p-2 bg-gray-700 rounded" placeholder="Enter event name">
     </div>
     <div class="overflow-x-auto">
       <table class="w-full text-sm">
@@ -131,8 +133,8 @@
             </td>
             <td class="px-4 py-2" id="calc-division-0"></td>
             <td class="px-4 py-2" id="calc-mp-0"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-bet-0" class="w-full bg-gray-700 p-1 rounded"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-score-0" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-bet-0" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-score-0" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
             <td class="px-4 py-2" id="calc-rank-0"></td>
             <td class="px-4 py-2" id="calc-rank-multi-0"></td>
             <td class="px-4 py-2" id="calc-score-multi-0"></td>
@@ -152,8 +154,8 @@
             </td>
             <td class="px-4 py-2" id="calc-division-1"></td>
             <td class="px-4 py-2" id="calc-mp-1"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-bet-1" class="w-full bg-gray-700 p-1 rounded"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-score-1" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-bet-1" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-score-1" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
             <td class="px-4 py-2" id="calc-rank-1"></td>
             <td class="px-4 py-2" id="calc-rank-multi-1"></td>
             <td class="px-4 py-2" id="calc-score-multi-1"></td>
@@ -173,8 +175,8 @@
             </td>
             <td class="px-4 py-2" id="calc-division-2"></td>
             <td class="px-4 py-2" id="calc-mp-2"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-bet-2" class="w-full bg-gray-700 p-1 rounded"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-score-2" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-bet-2" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-score-2" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
             <td class="px-4 py-2" id="calc-rank-2"></td>
             <td class="px-4 py-2" id="calc-rank-multi-2"></td>
             <td class="px-4 py-2" id="calc-score-multi-2"></td>
@@ -194,8 +196,8 @@
             </td>
             <td class="px-4 py-2" id="calc-division-3"></td>
             <td class="px-4 py-2" id="calc-mp-3"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-bet-3" class="w-full bg-gray-700 p-1 rounded"></td>
-            <td class="px-4 py-2"><input type="text" id="calc-score-3" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-bet-3" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
+            <td class="px-4 py-2"><input type="number" id="calc-score-3" class="w-full bg-gray-700 p-1 rounded" min="0"></td>
             <td class="px-4 py-2" id="calc-rank-3"></td>
             <td class="px-4 py-2" id="calc-rank-multi-3"></td>
             <td class="px-4 py-2" id="calc-score-multi-3"></td>
@@ -346,6 +348,7 @@
       // Calculate MP change
       function calculateMPChange() {
         const mode = document.getElementById("calc-mode").value;
+        const eventName = document.getElementById("global-event-name").value || "Default Event";
         const rows = [0, 1, 2, 3].map(i => {
           const name = document.getElementById(`calc-name-${i}`).value;
           return {
@@ -426,26 +429,24 @@
         const player = players[name];
         if (!player || isNaN(mpChange)) return;
 
-        const event = prompt("Enter event name:") || `Event ${new Date().toISOString().split('T')[0]}`;
-        const time = prompt("Enter date (YYYY-MM-DD):") || new Date().toISOString().split('T')[0];
-        if (event && time) {
-          const newMP = player.mp + mpChange;
-          player.history.push({
-            event,
-            time,
-            mpChange,
-            mp: newMP,
-            rank: parseInt(document.getElementById(`calc-rank-${index}`).textContent) || 1
-          });
-          player.mp = newMP;
-          player.peakMP = Math.max(player.peakMP, player.mp);
-          player.played = player.history.length;
-          player.wins = player.history.filter(h => h.rank === 1).length;
-          saveData();
-          updateLeaderboard();
-          showPlayerPage(name);
-          calculateMPChange();
-        }
+        const eventName = document.getElementById("global-event-name").value || `Event ${new Date().toISOString().split('T')[0]}`;
+        const time = "2025-07-15"; // Set current date automatically
+        const newMP = player.mp + mpChange;
+        player.history.push({
+          event: eventName,
+          time,
+          mpChange,
+          mp: newMP,
+          rank: parseInt(document.getElementById(`calc-rank-${index}`).textContent) || 1
+        });
+        player.mp = newMP;
+        player.peakMP = Math.max(player.peakMP, player.mp);
+        player.played = player.history.length;
+        player.wins = player.history.filter(h => h.rank === 1).length;
+        saveData();
+        updateLeaderboard();
+        showPlayerPage(name);
+        calculateMPChange();
       }
 
       // Add custom point to player history
@@ -456,12 +457,12 @@
           return;
         }
         const mpChange = parseInt(prompt("Enter MP change value:")) || 0;
-        const event = prompt("Enter event name:") || `Manual Adjustment ${new Date().toISOString().split('T')[0]}`;
-        const time = prompt("Enter date (YYYY-MM-DD):") || new Date().toISOString().split('T')[0];
+        const eventName = document.getElementById("global-event-name").value || `Manual Adjustment ${new Date().toISOString().split('T')[0]}`;
+        const time = "2025-07-15"; // Set current date automatically
         const player = players[playerName];
         const newMP = player.mp + mpChange;
         player.history.push({
-          event,
+          event: eventName,
           time,
           mpChange,
           mp: newMP,
@@ -479,6 +480,10 @@
       // Event listeners
       document.getElementById("calc-mode").addEventListener("change", () => {
         document.getElementById("score-time-label").textContent = document.getElementById("calc-mode").value;
+        calculateMPChange();
+      });
+
+      document.getElementById("global-event-name").addEventListener("input", () => {
         calculateMPChange();
       });
 
