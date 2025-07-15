@@ -3,228 +3,494 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MP賭博システム</title>
+  <title>MP Betting Game</title>
+  <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    body { background: #1c1c1c; color: #fff; font-family: 'Segoe UI', sans-serif; margin: 0; padding: 1rem; }
-    h2 { font-size: 1.4rem; border-bottom: 2px solid #333; padding-bottom: 0.4rem; margin-top: 2rem; }
-    table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.9rem; }
-    thead tr { background-color: #007bff; color: white; }
-    tbody tr:nth-child(even) { background-color: #2a2a2a; }
-    tbody tr:nth-child(odd) { background-color: #1e1e1e; }
-    th, td { border: 1px solid #444; padding: 0.5rem; text-align: center; }
-    input, select, button { padding: 0.4rem; margin: 0.2rem; background: #2e2e2e; color: white; border: 1px solid #555; }
-    .tab { display: none; }
-    .active { display: block; }
-    .tabs { display: flex; gap: 1rem; margin-bottom: 1rem; }
-    .tabs button { background: #333; color: white; border: none; padding: 0.5rem 1rem; cursor: pointer; border-radius: 5px; }
-    .tabs button.active { background: #4caf50; }
-    .log-entry { display: flex; justify-content: space-between; align-items: center; background: #2a2a2a; padding: 0.3rem; margin: 0.2rem 0; border-radius: 5px; }
-    .log-entry button { background: #555; font-size: 0.8rem; }
-    #results div { margin-top: 0.5rem; padding: 0.3rem; border-radius: 5px; }
-    .division-Crown { color: gold; }
-    .division-Grandmaster { color: #b0e0e6; }
-    .division-Master { color: #ff69b4; }
-    .division-Diamond { color: #00ffff; }
-    .division-Platinum { color: #e5e4e2; }
-    .division-Gold { color: gold; }
-    .division-Silver { color: silver; }
-    .division-Bronze { color: #cd7f32; }
-    .division-Iron { color: #c0c0c0; }
+    body { background-color: #1a202c; color: #e2e8f0; font-family: Arial, sans-serif; }
+    .table-header { background-color: #2b6cb0; color: white; }
+    .table-row:nth-child(odd) { background-color: #2d3748; }
+    .table-row:nth-child(even) { background-color: #4a5568; }
+    .iron { color: #a0aec0; }
+    .bronze { color: #b89778; }
+    .silver { color: #cbd5e0; }
+    .gold { color: #d4af37; }
+    .platinum { color: #b0bec5; }
+    .diamond { color: #b9f6ca; }
+    .master { color: #f687b3; }
+    .grandmaster { color: #ed8936; }
+    .crown { color: #9f7aea; }
   </style>
 </head>
-<body>
-  <div class="tabs">
-    <button onclick="switchTab('leaderboard')" class="active">🏆 ランキング</button>
-    <button onclick="switchTab('calculator')">🎲 得点計算</button>
-    <button onclick="switchTab('logs')">📖 履歴</button>
-  </div>
+<body class="min-h-screen p-4">
+  <div class="max-w-6xl mx-auto">
+    <h1 class="text-3xl font-bold mb-6 text-center">MP Betting Game</h1>
+    
+    <!-- Leaderboard -->
+    <h2 class="text-2xl font-semibold mb-4">Leaderboard</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="table-header">
+          <tr>
+            <th class="px-4 py-2">Rank</th>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Division</th>
+            <th class="px-4 py-2">MP</th>
+            <th class="px-4 py-2">Peak MP</th>
+            <th class="px-4 py-2">Played</th>
+            <th class="px-4 py-2">Win Rate</th>
+            <th class="px-4 py-2">Last 10 W-L</th>
+            <th class="px-4 py-2">Last 10 Gain/Loss</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body"></tbody>
+      </table>
+    </div>
 
-  <div id="leaderboard" class="tab active">
-    <h2>リーダーボード</h2>
-    <table>
-      <thead>
-        <tr><th>Rank</th><th>Name</th><th>Division</th><th>MP</th><th>Peak MP</th><th>Played</th><th>Win Rate</th><th>W-L</th></tr>
-      </thead>
-      <tbody id="leaderboard-body"></tbody>
-    </table>
-  </div>
+    <!-- Division Info -->
+    <h2 class="text-2xl font-semibold mt-8 mb-4">Divisions</h2>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="table-header">
+          <tr>
+            <th class="px-4 py-2">Division</th>
+            <th class="px-4 py-2">MP Range</th>
+            <th class="px-4 py-2">1st</th>
+            <th class="px-4 py-2">2nd</th>
+            <th class="px-4 py-2">3rd</th>
+            <th class="px-4 py-2">4th</th>
+            <th class="px-4 py-2">Bet</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="table-row"><td class="px-4 py-2 iron">Iron</td><td class="px-4 py-2">0 ~ 4999</td><td class="px-4 py-2">3</td><td class="px-4 py-2">2</td><td class="px-4 py-2">0.5</td><td class="px-4 py-2">0</td><td class="px-4 py-2">0-500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 bronze">Bronze</td><td class="px-4 py-2">5000 ~ 9999</td><td class="px-4 py-2">2.5</td><td class="px-4 py-2">2</td><td class="px-4 py-2">0.5</td><td class="px-4 py-2">-0.25</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 silver">Silver</td><td class="px-4 py-2">10000 ~ 14999</td><td class="px-4 py-2">2.2</td><td class="px-4 py-2">2</td><td class="px-4 py-2">0.25</td><td class="px-4 py-2">-0.356</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 gold">Gold</td><td class="px-4 py-2">15000 ~ 19999</td><td class="px-4 py-2">2.0</td><td class="px-4 py-2">1.5</td><td class="px-4 py-2">0.25</td><td class="px-4 py-2">-0.666</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 platinum">Platinum</td><td class="px-4 py-2">20000 ~ 24999</td><td class="px-4 py-2">1.9</td><td class="px-4 py-2">1.5</td><td class="px-4 py-2">0</td><td class="px-4 py-2">-1.183</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 diamond">Diamond</td><td class="px-4 py-2">25000 ~ 29999</td><td class="px-4 py-2">1.8</td><td class="px-4 py-2">1.25</td><td class="px-4 py-2">-0.25</td><td class="px-4 py-2">-1.6</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 master">Master</td><td class="px-4 py-2">30000 ~ 39999</td><td class="px-4 py-2">1.7</td><td class="px-4 py-2">1.25</td><td class="px-4 py-2">-0.25</td><td class="px-4 py-2">-1.917</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 grandmaster">Grandmaster</td><td class="px-4 py-2">40000 ~ 49999</td><td class="px-4 py-2">1.6</td><td class="px-4 py-2">1.25</td><td class="px-4 py-2">-0.25</td><td class="px-4 py-2">-2.133</td><td class="px-4 py-2">500</td></tr>
+          <tr class="table-row"><td class="px-4 py-2 crown">Crown</td><td class="px-4 py-2">50000 ~</td><td class="px-4 py-2">1.5</td><td class="px-4 py-2">1</td><td class="px-4 py-2">-0.5</td><td class="px-4 py-2">-2.25</td><td class="px-4 py-2">500</td></tr>
+        </tbody>
+      </table>
+    </div>
 
-  <div id="calculator" class="tab">
-    <h2>得点計算</h2>
-    <label>モード: 
-      <select id="mode" onchange="initScoreInputs()">
-        <option value="time">TIME / TURN</option>
-        <option value="score">SCORE</option>
+    <!-- Player History Pages -->
+    <div id="player-pages" class="mt-8">
+      <h2 class="text-2xl font-semibold mb-4">Player Histories</h2>
+      <div class="flex space-x-4 mb-4">
+        <button onclick="showPlayerPage('Yuito')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">Yuito</button>
+        <button onclick="showPlayerPage('ZAWA')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">ZAWA</button>
+        <button onclick="showPlayerPage('JO')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">JO</button>
+        <button onclick="showPlayerPage('SIGE')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">SIGE</button>
+        <button onclick="showPlayerPage('BANA')" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded">BANA</button>
+      </div>
+      <div id="player-page-content"></div>
+      <div class="mt-4">
+        <button onclick="addPoint()" class="px-4 py-2 bg-green-600 hover:bg-green-700 rounded">Add Point</button>
+      </div>
+    </div>
+
+    <!-- Score Calculation -->
+    <h2 class="text-2xl font-semibold mt-8 mb-4">Score Calculation</h2>
+    <div class="mb-4">
+      <label class="mr-2">Mode:</label>
+      <select id="calc-mode" class="p-2 bg-gray-700 rounded">
+        <option value="SCORE">SCORE</option>
+        <option value="TIME">TIME</option>
+        <option value="TURN">TURN</option>
       </select>
-    </label>
-    <label>日付: <input id="event-date" type="date"></label>
-    <label>イベント名: <input id="event-name" type="text"></label>
-    <table>
-      <thead>
-        <tr><th>Name</th><th>BET</th><th>TIME / SCORE</th><th>MP / Division</th></tr>
-      </thead>
-      <tbody id="score-inputs"></tbody>
-    </table>
-    <button onclick="calculateResults()">計算</button>
-    <div id="results"></div>
-  </div>
+    </div>
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="table-header">
+          <tr>
+            <th class="px-4 py-2">Name</th>
+            <th class="px-4 py-2">Division</th>
+            <th class="px-4 py-2">MP</th>
+            <th class="px-4 py-2">Bet</th>
+            <th class="px-4 py-2" id="score-time-label">Score/Time/Turn</th>
+            <th class="px-4 py-2">Rank</th>
+            <th class="px-4 py-2">Rank Multiplier</th>
+            <th class="px-4 py-2">Score Multiplier</th>
+            <th class="px-4 py-2">MP Change</th>
+            <th class="px-4 py-2">Action</th>
+          </tr>
+        </thead>
+        <tbody id="calc-body">
+          <tr class="table-row">
+            <td class="px-4 py-2">
+              <select id="calc-name-0" class="w-full bg-gray-700 p-1 rounded" onchange="updateCalc(0)">
+                <option value="">Select Player</option>
+                <option value="Yuito">Yuito</option>
+                <option value="ZAWA">ZAWA</option>
+                <option value="JO">JO</option>
+                <option value="SIGE">SIGE</option>
+                <option value="BANA">BANA</option>
+              </select>
+            </td>
+            <td class="px-4 py-2" id="calc-division-0"></td>
+            <td class="px-4 py-2" id="calc-mp-0"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-bet-0" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-score-0" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2" id="calc-rank-0"></td>
+            <td class="px-4 py-2" id="calc-rank-multi-0"></td>
+            <td class="px-4 py-2" id="calc-score-multi-0"></td>
+            <td class="px-4 py-2" id="calc-mp-change-0"></td>
+            <td class="px-4 py-2"><button onclick="applyMPChange(0)" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded">Apply</button></td>
+          </tr>
+          <tr class="table-row">
+            <td class="px-4 py-2">
+              <select id="calc-name-1" class="w-full bg-gray-700 p-1 rounded" onchange="updateCalc(1)">
+                <option value="">Select Player</option>
+                <option value="Yuito">Yuito</option>
+                <option value="ZAWA">ZAWA</option>
+                <option value="JO">JO</option>
+                <option value="SIGE">SIGE</option>
+                <option value="BANA">BANA</option>
+              </select>
+            </td>
+            <td class="px-4 py-2" id="calc-division-1"></td>
+            <td class="px-4 py-2" id="calc-mp-1"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-bet-1" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-score-1" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2" id="calc-rank-1"></td>
+            <td class="px-4 py-2" id="calc-rank-multi-1"></td>
+            <td class="px-4 py-2" id="calc-score-multi-1"></td>
+            <td class="px-4 py-2" id="calc-mp-change-1"></td>
+            <td class="px-4 py-2"><button onclick="applyMPChange(1)" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded">Apply</button></td>
+          </tr>
+          <tr class="table-row">
+            <td class="px-4 py-2">
+              <select id="calc-name-2" class="w-full bg-gray-700 p-1 rounded" onchange="updateCalc(2)">
+                <option value="">Select Player</option>
+                <option value="Yuito">Yuito</option>
+                <option value="ZAWA">ZAWA</option>
+                <option value="JO">JO</option>
+                <option value="SIGE">SIGE</option>
+                <option value="BANA">BANA</option>
+              </select>
+            </td>
+            <td class="px-4 py-2" id="calc-division-2"></td>
+            <td class="px-4 py-2" id="calc-mp-2"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-bet-2" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-score-2" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2" id="calc-rank-2"></td>
+            <td class="px-4 py-2" id="calc-rank-multi-2"></td>
+            <td class="px-4 py-2" id="calc-score-multi-2"></td>
+            <td class="px-4 py-2" id="calc-mp-change-2"></td>
+            <td class="px-4 py-2"><button onclick="applyMPChange(2)" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded">Apply</button></td>
+          </tr>
+          <tr class="table-row">
+            <td class="px-4 py-2">
+              <select id="calc-name-3" class="w-full bg-gray-700 p-1 rounded" onchange="updateCalc(3)">
+                <option value="">Select Player</option>
+                <option value="Yuito">Yuito</option>
+                <option value="ZAWA">ZAWA</option>
+                <option value="JO">JO</option>
+                <option value="SIGE">SIGE</option>
+                <option value="BANA">BANA</option>
+              </select>
+            </td>
+            <td class="px-4 py-2" id="calc-division-3"></td>
+            <td class="px-4 py-2" id="calc-mp-3"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-bet-3" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2"><input type="text" id="calc-score-3" class="w-full bg-gray-700 p-1 rounded"></td>
+            <td class="px-4 py-2" id="calc-rank-3"></td>
+            <td class="px-4 py-2" id="calc-rank-multi-3"></td>
+            <td class="px-4 py-2" id="calc-score-multi-3"></td>
+            <td class="px-4 py-2" id="calc-mp-change-3"></td>
+            <td class="px-4 py-2"><button onclick="applyMPChange(3)" class="px-2 py-1 bg-green-600 hover:bg-green-700 rounded">Apply</button></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
 
-  <div id="logs" class="tab">
-    <h2>プレイヤー履歴</h2>
-    <select id="logPlayer" onchange="renderLogs()">
-      <option>Yuito</option><option>ZAWA</option><option>JO</option><option>SIGE</option><option>BANA</option>
-    </select>
-    <div id="playerLogs"></div>
-  </div>
+    <script>
+      // Initialize player data with photo data
+      const players = {
+        Yuito: { mp: 1014, peakMP: 1514, history: [
+          { event: "Season 1 start", time: "2025/06/22", mpChange: 100, mp: 100, rank: 1 },
+          { event: "Examination", time: "2025/07/01", mpChange: 420, mp: 520, rank: 1 },
+          { event: "Ludo", time: "2025/07/09", mpChange: 250, mp: 770, rank: 1 },
+          { event: "Minesweeper", time: "2025/07/10", mpChange: 744, mp: 1514, rank: 1 },
+          { event: "Recent Loss", time: "2025/07/15", mpChange: -500, mp: 1014, rank: 4 }
+        ], played: 5, wins: 4 },
+        ZAWA: { mp: 49, peakMP: 102, history: [], played: 2, wins: 1 },
+        JO: { mp: 115, peakMP: 100, history: [], played: 2, wins: 0 },
+        SIGE: { mp: 594, peakMP: 594, history: [], played: 2, wins: 1 },
+        BANA: { mp: 500, peakMP: 500, history: [], played: 0, wins: 0 }
+      };
 
-  <script>
-    const players = JSON.parse(localStorage.getItem('players')) || {
-      Yuito: { MP: 500, peak: 500, played: 0, wins: 0, logs: [] },
-      ZAWA:  { MP: 500, peak: 500, played: 0, wins: 0, logs: [] },
-      JO:    { MP: 500, peak: 500, played: 0, wins: 0, logs: [] },
-      SIGE:  { MP: 500, peak: 500, played: 0, wins: 0, logs: [] },
-      BANA:  { MP: 500, peak: 500, played: 0, wins: 0, logs: [] },
-    };
+      const divisions = [
+        { name: "Iron", minMP: 0, maxMP: 4999, multipliers: [3, 2, 0.5, 0], bet: "0-500", color: "iron" },
+        { name: "Bronze", minMP: 5000, maxMP: 9999, multipliers: [2.5, 2, 0.5, -0.25], bet: "500", color: "bronze" },
+        { name: "Silver", minMP: 10000, maxMP: 14999, multipliers: [2.2, 2, 0.25, -0.356], bet: "500", color: "silver" },
+        { name: "Gold", minMP: 15000, maxMP: 19999, multipliers: [2.0, 1.5, 0.25, -0.666], bet: "500", color: "gold" },
+        { name: "Platinum", minMP: 20000, maxMP: 24999, multipliers: [1.9, 1.5, 0, -1.183], bet: "500", color: "platinum" },
+        { name: "Diamond", minMP: 25000, maxMP: 29999, multipliers: [1.8, 1.25, -0.25, -1.6], bet: "500", color: "diamond" },
+        { name: "Master", minMP: 30000, maxMP: 39999, multipliers: [1.7, 1.25, -0.25, -1.917], bet: "500", color: "master" },
+        { name: "Grandmaster", minMP: 40000, maxMP: 49999, multipliers: [1.6, 1.25, -0.25, -2.133], bet: "500", color: "grandmaster" },
+        { name: "Crown", minMP: 50000, maxMP: Infinity, multipliers: [1.5, 1, -0.5, -2.25], bet: "500", color: "crown" }
+      ];
 
-    const divisions = [
-      { name: 'Crown', min: 50000, rates: [1.5, 1, -0.5, -2.25] },
-      { name: 'Grandmaster', min: 40000, rates: [1.6, 1.25, -0.25, -2.133] },
-      { name: 'Master', min: 30000, rates: [1.7, 1.25, -0.25, -1.917] },
-      { name: 'Diamond', min: 25000, rates: [1.8, 1.25, -0.25, -1.6] },
-      { name: 'Platinum', min: 20000, rates: [1.9, 1.5, 0, -1.183] },
-      { name: 'Gold', min: 15000, rates: [2, 1.5, 0.25, -0.666] },
-      { name: 'Silver', min: 10000, rates: [2.2, 2, 0.25, -0.356] },
-      { name: 'Bronze', min: 5000, rates: [2.5, 2, 0.5, -0.25] },
-      { name: 'Iron', min: 0, rates: [3, 2, 0.5, 0] },
-    ];
-
-    function getDivision(mp) {
-      return divisions.find(d => mp >= d.min).name;
-    }
-
-    function saveData() {
-      localStorage.setItem('players', JSON.stringify(players));
-    }
-
-    function renderLeaderboard() {
-      const body = document.getElementById('leaderboard-body');
-      const sorted = Object.entries(players).sort((a, b) => b[1].MP - a[1].MP);
-      body.innerHTML = '';
-      sorted.forEach(([name, p], i) => {
-        const div = getDivision(p.MP);
-        const divClass = `division-${div}`;
-        const rate = p.played ? Math.round(p.wins / p.played * 100) : 0;
-        const wl = `${p.wins}-${p.played - p.wins}`;
-        body.innerHTML += `<tr><td>${i + 1}</td><td>${name}</td><td class="${divClass}">${div}</td><td>${p.MP}</td><td>${p.peak}</td><td>${p.played}</td><td>${rate}%</td><td>${wl}</td></tr>`;
-      });
-    }
-
-    function initScoreInputs() {
-      const tbody = document.getElementById('score-inputs');
-      tbody.innerHTML = '';
-      Object.keys(players).forEach(name => {
-        const mp = players[name].MP;
-        const div = getDivision(mp);
-        tbody.innerHTML += `<tr><td>${name}</td><td><input id="bet-${name}" type="number" placeholder=""></td><td><input id="val-${name}" type="number" placeholder=""></td><td>${mp} / ${div}</td></tr>`;
-      });
-    }
-
-    function calculateResults() {
-      const mode = document.getElementById('mode').value;
-      const names = Object.keys(players);
-      const values = [];
-      names.forEach(name => {
-        const bet = parseFloat(document.getElementById(`bet-${name}`).value);
-        const val = parseFloat(document.getElementById(`val-${name}`).value);
-        if (!isNaN(bet) && !isNaN(val)) values.push({ name, bet, value: val });
-      });
-
-      const avg = values.reduce((a, b) => a + b.value, 0) / values.length;
-      let sorted = [...values].sort((a, b) => mode === 'score' ? b.value - a.value : a.value - b.value);
-      let rankMap = {}; let rank = 0;
-      for (let i = 0; i < sorted.length; i++) {
-        if (i === 0 || sorted[i].value !== sorted[i - 1].value) rank = i;
-        rankMap[sorted[i].name] = rank;
+      // Load data from localStorage
+      function loadData() {
+        const savedData = localStorage.getItem("mpGameData");
+        if (savedData) {
+          Object.assign(players, JSON.parse(savedData));
+        }
       }
 
-      const resultDiv = document.getElementById('results');
-      resultDiv.innerHTML = '';
-      const results = [];
-      const count = values.length;
-      values.forEach(entry => {
-        const player = players[entry.name];
-        const divObj = divisions.find(d => d.name === getDivision(player.MP));
-        const place = rankMap[entry.name];
+      // Save data to localStorage
+      function saveData() {
+        localStorage.setItem("mpGameData", JSON.stringify(players));
+      }
 
-        let posRate = 0;
-        if (count === 4) posRate = divObj.rates[place] ?? 0;
-        else if (count === 3) posRate = place === 0 ? divObj.rates[0] : (place === 1 ? 1 : divObj.rates[3]);
-        else if (count === 2) posRate = place === 0 ? divObj.rates[0] : divObj.rates[3];
+      // Get division for a given MP
+      function getDivision(mp) {
+        return divisions.find(div => mp >= div.minMP && mp <= div.maxMP) || divisions[0];
+      }
 
-        let scoreRate = mode === 'score' ? entry.value / avg : avg / entry.value;
-        scoreRate = Math.round(scoreRate * 1000) / 1000;
-        const gain = Math.round((entry.bet * posRate * scoreRate - entry.bet));
+      // Update leaderboard
+      function updateLeaderboard() {
+        const leaderboard = Object.entries(players)
+          .sort((a, b) => b[1].mp - a[1].mp)
+          .map(([name, data], index) => {
+            const division = getDivision(data.mp);
+            const last10 = data.history.slice(-10);
+            const last10WL = last10.reduce(
+              (acc, h) => ({
+                wins: acc.wins + (h.rank === 1 ? 1 : 0),
+                losses: acc.losses + (h.rank !== 1 ? 1 : 0)
+              }),
+              { wins: 0, losses: 0 }
+            );
+            const last10GainLoss = last10.reduce((sum, h) => sum + h.mpChange, 0);
+            const winRate = data.played ? ((data.wins / data.played) * 100).toFixed(2) : "0.00";
+            return `
+              <tr class="table-row">
+                <td class="px-4 py-2">${index + 1}</td>
+                <td class="px-4 py-2">${name}</td>
+                <td class="px-4 py-2 ${division.color}">${division.name}</td>
+                <td class="px-4 py-2">${data.mp}</td>
+                <td class="px-4 py-2">${data.peakMP}</td>
+                <td class="px-4 py-2">${data.played}</td>
+                <td class="px-4 py-2">${winRate}%</td>
+                <td class="px-4 py-2">${last10WL.wins}-${last10WL.losses}</td>
+                <td class="px-4 py-2 ${last10GainLoss >= 0 ? 'text-blue-400' : 'text-red-400'}">${last10GainLoss}</td>
+              </tr>
+            `;
+          })
+          .join("");
+        document.getElementById("leaderboard-body").innerHTML = leaderboard;
+      }
 
-        const btn = `<button onclick="applyToLog('${entry.name}', ${gain})">→履歴に反映</button>`;
-        const color = gain > 0 ? 'red' : gain < 0 ? 'skyblue' : 'white';
-        resultDiv.innerHTML += `<div style="color:${color}">${entry.name}：${gain} MP ${btn}</div>`;
-        results.push({ ...entry, gain });
-      });
-    }
+      // Show player history page
+      function showPlayerPage(playerName) {
+        const player = players[playerName];
+        const division = getDivision(player.mp);
+        const historyRows = player.history
+          .map((h, i) => `
+            <tr class="table-row">
+              <td class="px-4 py-2"><input type="text" value="${h.event}" class="w-full bg-gray-700 p-1 rounded" onchange="editHistory('${playerName}', ${i}, 'event', this.value)"></td>
+              <td class="px-4 py-2"><input type="date" value="${h.time}" class="w-full bg-gray-700 p-1 rounded" onchange="editHistory('${playerName}', ${i}, 'time', this.value)"></td>
+              <td class="px-4 py-2 ${h.mpChange >= 0 ? 'text-blue-400' : 'text-red-400'}">${h.mpChange}</td>
+              <td class="px-4 py-2">${h.mp}</td>
+              <td class="px-4 py-2"><button onclick="deleteHistory('${playerName}', ${i})" class="px-2 py-1 bg-red-600 hover:bg-red-700 rounded">Delete</button></td>
+            </tr>
+          `)
+          .join("");
+        document.getElementById("player-page-content").innerHTML = `
+          <h3 class="text-xl font-semibold mb-4">${playerName} (Current MP: ${player.mp}, Division: <span class="${division.color}">${division.name}</span>)</h3>
+          <table class="w-full text-sm">
+            <thead class="table-header">
+              <tr>
+                <th class="px-4 py-2">Event</th>
+                <th class="px-4 py-2">Time</th>
+                <th class="px-4 py-2">MP Change</th>
+                <th class="px-4 py-2">MP</th>
+                <th class="px-4 py-2">Action</th>
+              </tr>
+            </thead>
+            <tbody>${historyRows}</tbody>
+          </table>
+        `;
+      }
 
-    function applyToLog(name, change) {
-      const date = document.getElementById('event-date').value || new Date().toLocaleDateString('ja-JP');
-      const event = document.getElementById('event-name').value || '[得点計算]';
-      players[name].logs.push({ event, time: date, change });
-      players[name].MP += change;
-      if (players[name].MP > players[name].peak) players[name].peak = players[name].MP;
-      players[name].played++;
-      if (change > 0) players[name].wins++;
-      saveData();
-      renderLeaderboard();
-      renderLogs();
-      initScoreInputs();
-    }
-
-    function renderLogs() {
-      const name = document.getElementById('logPlayer').value;
-      const logDiv = document.getElementById('playerLogs');
-      const logs = players[name].logs;
-      logDiv.innerHTML = logs.map((log, i) => `
-        <div class="log-entry">
-          <span>${log.time} / ${log.event} / ${log.change} MP</span>
-          <button onclick="editLog('${name}', ${i})">編集</button>
-          <button onclick="deleteLog('${name}', ${i})">削除</button>
-        </div>
-      `).join('');
-    }
-
-    function deleteLog(name, index) {
-      const change = players[name].logs[index].change;
-      players[name].MP -= change;
-      players[name].logs.splice(index, 1);
-      saveData();
-      renderLogs();
-      renderLeaderboard();
-      initScoreInputs();
-    }
-
-    function editLog(name, index) {
-      const newVal = prompt('新しいMP変動を入力してください');
-      const change = parseFloat(newVal);
-      if (!isNaN(change)) {
-        const old = players[name].logs[index].change;
-        players[name].MP += (change - old);
-        players[name].logs[index].change = change;
+      // Edit history entry
+      function editHistory(playerName, index, field, value) {
+        players[playerName].history[index][field] = value;
         saveData();
-        renderLogs();
-        renderLeaderboard();
-        initScoreInputs();
+        showPlayerPage(playerName);
       }
-    }
 
-    renderLeaderboard();
-    initScoreInputs();
-  </script>
-</body>
+      // Delete history entry
+      function deleteHistory(playerName, index) {
+        players[playerName].history.splice(index, 1);
+        updatePlayerStats(playerName);
+        saveData();
+        showPlayerPage(playerName);
+        updateLeaderboard();
+      }
+
+      // Update player stats
+      function updatePlayerStats(playerName) {
+        const player = players[playerName];
+        player.mp = player.history.reduce((sum, h) => sum + h.mpChange, 500);
+        player.peakMP = Math.max(player.mp, player.peakMP);
+        player.played = player.history.length;
+        player.wins = player.history.filter(h => h.rank === 1).length;
+      }
+
+      // Calculate MP change
+      function calculateMPChange() {
+        const mode = document.getElementById("calc-mode").value;
+        const rows = [0, 1, 2, 3].map(i => {
+          const name = document.getElementById(`calc-name-${i}`).value;
+          return {
+            name,
+            bet: parseFloat(document.getElementById(`calc-bet-${i}`).value) || 0,
+            score: parseFloat(document.getElementById(`calc-score-${i}`).value) || 0
+          };
+        }).filter(row => row.name && row.bet >= 0 && row.score >= 0);
+
+        if (rows.length === 0) return;
+
+        // Determine ranks
+        const sorted = [...rows].sort((a, b) => mode === "SCORE" ? b.score - a.score : a.score - b.score);
+        const ranks = sorted.map((row, i) => {
+          const ties = sorted.filter(r => r.score === row.score).map(r => r.name);
+          return { name: row.name, rank: ties.length > 1 ? sorted.findIndex(r => r.score === row.score) + 1 : i + 1 };
+        });
+
+        // Adjust multipliers for 2 or 3 player matches
+        const numPlayers = rows.length;
+        const adjustedMultipliers = ranks.map(r => {
+          const division = getDivision(players[r.name]?.mp || 500);
+          let multiplier = division.multipliers[r.rank - 1];
+          if (numPlayers === 3) {
+            if (r.rank === 2) multiplier = 1;
+            if (r.rank === 3) multiplier = division.multipliers[3];
+          } else if (numPlayers === 2) {
+            if (r.rank === 2) multiplier = division.multipliers[3];
+          }
+          return { name: r.name, multiplier };
+        });
+
+        // Calculate score multiplier
+        const avgScore = rows.reduce((sum, r) => sum + r.score, 0) / rows.length;
+        rows.forEach((row, i) => {
+          const player = players[row.name];
+          if (!player) return;
+
+          const division = getDivision(player.mp);
+          const rankMulti = adjustedMultipliers.find(m => m.name === row.name).multiplier;
+          const scoreMulti = mode === "SCORE" ? row.score / avgScore : avgScore / row.score;
+          const roundedScoreMulti = Math.round(scoreMulti * 100) / 100;
+          const mpChange = Math.round((row.bet * rankMulti * roundedScoreMulti) - row.bet);
+
+          document.getElementById(`calc-division-${i}`).textContent = division.name;
+          document.getElementById(`calc-division-${i}`).className = `px-4 py-2 ${division.color}`;
+          document.getElementById(`calc-mp-${i}`).textContent = player.mp;
+          document.getElementById(`calc-rank-${i}`).textContent = ranks.find(r => r.name === row.name).rank;
+          document.getElementById(`calc-rank-multi-${i}`).textContent = rankMulti;
+          document.getElementById(`calc-score-multi-${i}`).textContent = roundedScoreMulti.toFixed(2);
+          document.getElementById(`calc-mp-change-${i}`).textContent = mpChange;
+          document.getElementById(`calc-mp-change-${i}`).className = `px-4 py-2 ${mpChange >= 0 ? 'text-blue-400' : 'text-red-400'}`;
+        });
+      }
+
+      // Update calc fields based on selected player
+      function updateCalc(index) {
+        const name = document.getElementById(`calc-name-${index}`).value;
+        const player = players[name] || { mp: 500 };
+        const division = getDivision(player.mp);
+        document.getElementById(`calc-division-${index}`).textContent = division.name;
+        document.getElementById(`calc-division-${index}`).className = `px-4 py-2 ${division.color}`;
+        document.getElementById(`calc-mp-${index}`).textContent = player.mp;
+        if (division.name !== "Iron") {
+          document.getElementById(`calc-bet-${index}`).value = "500";
+          document.getElementById(`calc-bet-${index}`).disabled = true;
+        } else {
+          document.getElementById(`calc-bet-${index}`).value = "";
+          document.getElementById(`calc-bet-${index}`).disabled = false;
+        }
+        calculateMPChange();
+      }
+
+      // Apply MP change to player history
+      function applyMPChange(index) {
+        const name = document.getElementById(`calc-name-${index}`).value;
+        const mpChange = parseInt(document.getElementById(`calc-mp-change-${index}`).textContent);
+        const player = players[name];
+        if (!player || isNaN(mpChange)) return;
+
+        const event = prompt("Enter event name:") || `Event ${new Date().toISOString().split('T')[0]}`;
+        const time = prompt("Enter date (YYYY-MM-DD):") || new Date().toISOString().split('T')[0];
+        if (event && time) {
+          const newMP = player.mp + mpChange;
+          player.history.push({
+            event,
+            time,
+            mpChange,
+            mp: newMP,
+            rank: parseInt(document.getElementById(`calc-rank-${index}`).textContent) || 1
+          });
+          player.mp = newMP;
+          player.peakMP = Math.max(player.peakMP, player.mp);
+          player.played = player.history.length;
+          player.wins = player.history.filter(h => h.rank === 1).length;
+          saveData();
+          updateLeaderboard();
+          showPlayerPage(name);
+          calculateMPChange();
+        }
+      }
+
+      // Add custom point to player history
+      function addPoint() {
+        const playerName = prompt("Enter player name (Yuito, ZAWA, JO, SIGE, BANA):");
+        if (!players[playerName]) {
+          alert("Invalid player name!");
+          return;
+        }
+        const mpChange = parseInt(prompt("Enter MP change value:")) || 0;
+        const event = prompt("Enter event name:") || `Manual Adjustment ${new Date().toISOString().split('T')[0]}`;
+        const time = prompt("Enter date (YYYY-MM-DD):") || new Date().toISOString().split('T')[0];
+        const player = players[playerName];
+        const newMP = player.mp + mpChange;
+        player.history.push({
+          event,
+          time,
+          mpChange,
+          mp: newMP,
+          rank: 1 // Default rank for manual addition
+        });
+        player.mp = newMP;
+        player.peakMP = Math.max(player.peakMP, player.mp);
+        player.played = player.history.length;
+        player.wins = player.history.filter(h => h.rank === 1).length;
+        saveData();
+        updateLeaderboard();
+        showPlayerPage(playerName);
+      }
+
+      // Event listeners
+      document.getElementById("calc-mode").addEventListener("change", () => {
+        document.getElementById("score-time-label").textContent = document.getElementById("calc-mode").value;
+        calculateMPChange();
+      });
+
+      [0, 1, 2, 3].forEach(i => {
+        document.getElementById(`calc-bet-${i}`).addEventListener("input", () => calculateMPChange());
+        document.getElementById(`calc-score-${i}`).addEventListener("input", () => calculateMPChange());
+      });
+
+      // Initialize
+      loadData();
+      updateLeaderboard();
+      showPlayerPage("Yuito");
+    </script>
+  </body>
 </html>
